@@ -165,16 +165,26 @@ def run_extraction():
     # Open one MySQL connection for the entire run
     connection = get_mysql_connection()
 
+    uploaded_tables = {}
+
     try:
         # ── Full refresh tables
         for table_name in FULL_REFRESH_TABLES:
             df = extract_full_refresh(connection, table_name)
-            upload_dataframe_to_gcs(df, table_name, bucket_name)
+            blob_path = upload_dataframe_to_gcs(df, table_name, bucket_name)
+            uploaded_tables[table_name] = {
+                "blob_path": blob_path,
+                "incremental": False
+            }
             logger.info(f"Complete: {table_name} ({len(df)} rows)")
     
     # ── tbl_admin with column selection
         df_admin = extract_admin (connection)
-        upload_dataframe_to_gcs(df_admin, "tbl_admin", bucket_name)
+        blob_path = upload_dataframe_to_gcs(df_admin, "tbl_admin", bucket_name)
+        uploaded_tables["tbl_admin"] = {
+            "blob_path": blob_path,
+            "incremental": False
+        }
         logger.info(f"Completed: tbl_admin ({len(df_admin)} rows)")
 
      # ── Incremental tables
@@ -187,7 +197,11 @@ def run_extraction():
                 logger.info(f"No New rows for {table_name} - skipping upload")
                 continue
 
-            upload_dataframe_to_gcs(df, table_name, bucket_name)
+            blob_path = upload_dataframe_to_gcs(df, table_name, bucket_name)
+            uploaded_tables[table_name] = {
+                "blob_path": blob_path,
+                "incremental": True
+            }
             update_watermark(table_name, bucket_name, run_timestamp)
             logger.info(f"Completed: {table_name} ({len(df)} rows)")
 
@@ -195,4 +209,5 @@ def run_extraction():
         connection.close()
         logger.info("MySQL connection closed")
 
-    logger.info("Extraction Completed")
+    logger.info("Extraction Complete")
+    return uploaded_tables

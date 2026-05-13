@@ -1,10 +1,10 @@
 import os
 import logging
 import pandas as pd
-import mysql.connector
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from utils.gcs import upload_dataframe_to_gcs, get_gcs_client
+from sqlalchemy import create_engine
 
 # Loading environment variables from .env file
 load_dotenv()
@@ -65,17 +65,19 @@ ADMIN_COLUMNS = [
 # ── MySQL Connection ──────────────────────────────────────────────────────────────
 
 def get_mysql_connection():
-    """    
-    Create and return MySQL connection using
-    credentials from environment variables.
     """
-    return mysql.connector.connect(
-        host=os.getenv("MYSQL_HOST"),
-        port=int(os.getenv("MYSQL_PORT", "3306")),
-        database=os.getenv("MYSQL_DATABASE"),
-        user=os.getenv("MYSQL_USER"),
-        password=os.getenv("MYSQL_PASSWORD"),
-    )
+    Creates and returns a SQLAlchemy engine for MySQL.
+    pandas works natively with SQLAlchemy connections.
+    """
+    host     = os.getenv("MYSQL_HOST")
+    port     = os.getenv("MYSQL_PORT", "3306")
+    database = os.getenv("MYSQL_DATABASE")
+    user     = os.getenv("MYSQL_USER")
+    password = os.getenv("MYSQL_PASSWORD")
+
+    connection_string = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
+    engine = create_engine(connection_string)
+    return engine
 
 # ── Watermark Helpers ───────────────────────────────────────────────
 

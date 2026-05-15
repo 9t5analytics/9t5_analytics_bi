@@ -208,7 +208,7 @@ def run_extraction():
             logger.info(f"Completed: {table_name} ({len(df)} rows)")
 
     finally:
-        connection.close()
+        connection.dispose()
         logger.info("MySQL connection closed")
 
     logger.info("Extraction Complete")

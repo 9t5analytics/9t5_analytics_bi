@@ -26,3 +26,24 @@ variable "superset_machine_type" {
     type        = string
     default     = "e2-small"
 }
+
+variable "mysql_host" {
+  description = "Railway MySQL host"
+  type        = string
+}
+
+variable "mysql_database" {
+  description = "Railway MySQL database name"
+  type        = string
+}
+
+variable "mysql_user" {
+  description = "Railway MySQL username"
+  type        = string
+}
+
+variable "mysql_port" {
+  description = "Railway MySQL port"
+  type        = string
+  default     = "10357"
+}

@@ -12,3 +12,8 @@ output "pipeline_sa_email" {
     value = google_service_account.pipeline_sa.email
     description = "Pipeline service account email"
 }
+
+output "artifact_registry_url" {
+  value       = "${var.region}-docker.pkg.dev/${var.project_id}/analytics-pipeline"
+  description = "Artifact Registry URL for pipeline images"
+}

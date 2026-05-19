@@ -1,0 +1,101 @@
+version: 2
+
+sources:
+  - name: raw
+    database: analytics-9t5-prod
+    schema: analytics
+    description: "Raw tables loaded by the ingestion pipeline from Railway MySQL"
+
+    tables:
+      - name: tbl_organization
+        description: "Top level entity - organisations using the platform"
+
+      - name: tbl_customer
+        description: "Customers belonging to each organisation"
+
+      - name: tbl_customer_vehicle
+        description: "Vehicles belonging to each customer"
+
+      - name: tbl_customer_vehicle_insurance
+        description: "Insurance policies for each vehicle"
+
+      - name: tbl_customer_vehicle_driver
+        description: "Drivers associated with each vehicle"
+
+      - name: tbl_claim
+        description: "Insurance claims raised against vehicles"
+
+      - name: tbl_claim_driver
+        description: "Driver details at time of claim"
+
+      - name: tbl_claim_status_log
+        description: "Status history and comments for each claim"
+
+      - name: tbl_claim_notes
+        description: "Notes added to claims"
+
+      - name: tbl_claim_files
+        description: "Files attached to claims"
+
+      - name: tbl_thirdparty_car
+        description: "Third party vehicle details for claims"
+
+      - name: tbl_thirdparty_owner
+        description: "Third party vehicle owner details"
+
+      - name: tbl_thirdparty_driver
+        description: "Third party driver details"
+
+      - name: tbl_police_detail
+        description: "Police report details for claims"
+
+      - name: tbl_witness
+        description: "Witness details for claims"
+
+      - name: tbl_vehicle_after_accident
+        description: "Tow and post-accident vehicle details"
+
+      - name: tbl_admin
+        description: "Staff members - PII and auth columns excluded"
+
+      - name: tbl_claimstatus
+        description: "Lookup - claim status types"
+
+      - name: tbl_claimfault
+        description: "Lookup - claim fault types"
+
+      - name: tbl_accidenttype
+        description: "Lookup - accident type categories"
+
+      - name: tbl_vehicletype
+        description: "Lookup - vehicle body types"
+
+      - name: tbl_insurance
+        description: "Lookup - insurance cover types"
+
+      - name: tbl_premiumperiod
+        description: "Lookup - premium payment frequencies"
+
+      - name: tbl_policystatus
+        description: "Lookup - policy status types"
+
+      - name: tbl_policy
+        description: "Lookup - policy cover types"
+
+      - name: tbl_valuationtype
+        description: "Lookup - vehicle valuation methods"
+
+      - name: tbl_subscriptions
+        description: "Customer subscription records"
+
+      - name: tbl_payments
+        description: "Payment records"
+
+      - name: tbl_payment_log
+        description: "Payment activity log"
+
+      - name: tbl_activity_log
+        description: "Staff activity log"
+
+      - name: tbl_settlement
+        description: "The table for Aaccounts Receivable and Accounts Payable"

@@ -40,6 +40,7 @@ FULL_REFRESH_TABLES = [
     "tbl_policystatus",
     "tbl_policy",
     "tbl_valuationtype",
+    "tbl_settlement",
 ]
 
 # Tables that use incremental loading based on created_at

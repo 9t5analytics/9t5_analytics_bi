@@ -1,0 +1,54 @@
+name: Deploy Ingestion Pipeline
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'ingestion/**'
+
+env:
+  PROJECT_ID: analytics-9t5-prod
+  REGION: europe-west1
+  REPOSITORY: analytics-pipeline
+  IMAGE: pipeline
+  JOB_NAME: analytics-pipeline
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/549131392640/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: pipeline-sa@analytics-9t5-prod.iam.gserviceaccount.com
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ingestion
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest
+
+      - name: Update Cloud Run Job
+        run: |
+          gcloud run jobs update ${{ env.JOB_NAME }} \
+            --region=${{ env.REGION }} \
+            --image=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest

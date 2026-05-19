@@ -1,3 +1,5 @@
+# Ingestion pipeline - MySQL to GCS to BigQuery
+
 import logging
 from dotenv import load_dotenv
 from extract import run_extraction

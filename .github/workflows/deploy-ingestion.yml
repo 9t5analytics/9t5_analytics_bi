@@ -13,6 +13,7 @@ env:
   REPOSITORY: analytics-pipeline
   IMAGE: pipeline
   JOB_NAME: analytics-pipeline
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   deploy:

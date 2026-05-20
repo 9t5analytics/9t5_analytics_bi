@@ -17,3 +17,13 @@ output "artifact_registry_url" {
   value       = "${var.region}-docker.pkg.dev/${var.project_id}/analytics-pipeline"
   description = "Artifact Registry URL for pipeline images"
 }
+
+output "superset_ip" {
+  value       = google_compute_address.superset.address
+  description = "Static IP address for Superset VM"
+}
+
+output "superset_vm_name" {
+  value       = google_compute_instance.superset.name
+  description = "Superset VM instance name"
+}

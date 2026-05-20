@@ -171,3 +171,59 @@ resource "google_project_iam_member" "pipeline_secret_accessor" {
   role    = "roles/secretmanager.secretAccessor"
   member  = "serviceAccount:${google_service_account.pipeline_sa.email}"
 }
+
+# ── Static IP for Superset VM ───────────────────────────────────────
+resource "google_compute_address" "superset" {
+  name   = "superset-ip"
+  region = var.region
+}
+
+# ── Firewall Rule ───────────────────────────────────────────────────
+resource "google_compute_firewall" "superset" {
+  name    = "allow-superset"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["80", "443", "22"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["superset"]
+}
+
+# ── Superset VM ─────────────────────────────────────────────────────
+resource "google_compute_instance" "superset" {
+  name         = "superset-vm"
+  machine_type = var.superset_machine_type
+  zone         = "${var.region}-b"
+  tags         = ["superset"]
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-12"
+      size  = 20
+    }
+  }
+
+  network_interface {
+    network = "default"
+    access_config {
+      nat_ip = google_compute_address.superset.address
+    }
+  }
+
+  metadata_startup_script = <<-EOF
+    #!/bin/bash
+    apt-get update
+    apt-get install -y docker.io docker-compose
+    systemctl enable docker
+    systemctl start docker
+    usermod -aG docker $USER
+  EOF
+
+  service_account {
+    email  = google_service_account.pipeline_sa.email
+    scopes = ["cloud-platform"]
+  }
+}

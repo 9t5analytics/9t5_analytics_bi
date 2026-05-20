@@ -20,4 +20,4 @@ models:
       +schema: staging
     marts:
       +materialized: table
-      +schema: marts
+      +schema: marts# dbt project for 9t5 Analytics

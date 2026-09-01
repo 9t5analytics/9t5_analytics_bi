@@ -41,6 +41,13 @@ FULL_REFRESH_TABLES = [
     "tbl_policy",
     "tbl_valuationtype",
     "tbl_settlement",
+    "tbl_settlement",
+    "tbl_claim_tasks",
+    "tbl_membership_package",
+    "tbl_vehicle_transfer",
+    "tbl_customer_documents",
+    "tbl_customer_notes",
+    "tbl_notification_reads",
 ]
 
 # Tables that use incremental loading based on created_at
@@ -48,6 +55,8 @@ INCREMENTAL_TABLES = [
     "tbl_claim_status_log",
     "tbl_payment_log",
     "tbl_activity_log",
+    "tbl_audit_trail",       # new
+    "tbl_notifications", 
 ]
 
 # tbl_admin with specific columns only - no PII or auth tokens
@@ -61,6 +70,7 @@ ADMIN_COLUMNS = [
     "isActive",
     "created_at",
     "last_login",
+     "updated_at",
 ]
 
 # ── MySQL Connection ──────────────────────────────────────────────────────────────

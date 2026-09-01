@@ -27,7 +27,6 @@ FULL_REFRESH_TABLES = [
     "tbl_police_detail",
     "tbl_witness",
     "tbl_vehicle_after_accident",
-    "tbl_claim_notes",
     "tbl_subscriptions",
     "tbl_payments",
     "tbl_claimstatus",

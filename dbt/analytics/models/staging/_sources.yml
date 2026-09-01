@@ -99,3 +99,6 @@ sources:
 
       - name: tbl_settlement
         description: "The table for Aaccounts Receivable and Accounts Payable"
+
+      - name: tbl_audit_trail
+        description: "Comprehensive audit log recording every change to every entity"

@@ -30,31 +30,33 @@ claim_statuses as (
     from {{ ref('stg_claim_statuses') }}
 ),
 
-latest_status as (
-    select distinct
-        claim_id,
-        last_value(status_name) over (
-            partition by claim_id
-            order by created_at
-            rows between unbounded preceding and unbounded following
-        )                                           as current_status_name,
-        max(created_at) over (
-            partition by claim_id
-        )                                           as last_status_change_at,
-        count(*) over (
-            partition by claim_id
-        )                                           as total_status_changes
-    from {{ ref('stg_claim_status_log') }}
+claim_faults as (
+    select
+        claim_fault_id,
+        organization_id,
+        claim_fault_name
+    from {{ ref('stg_claimfault') }}
 ),
 
-last_activity as (
+latest_status as (
     select
-        entity_id                                   as claim_id,
-        max(created_at)                             as last_activity_at,
-        count(*)                                    as total_activities
-    from {{ ref('stg_audit_trail') }}
-    where entity_type = 'claim'
-    group by entity_id
+        claim_id,
+        status_name                                 as current_status_name,
+        created_at                                  as last_status_change_at,
+        total_changes                               as total_status_changes
+    from (
+        select
+            claim_id,
+            status_name,
+            created_at,
+            count(*) over (partition by claim_id)   as total_changes,
+            row_number() over (
+                partition by claim_id
+                order by created_at desc
+            )                                       as rn
+        from {{ ref('stg_claim_status_log') }}
+    )
+    where rn = 1
 ),
 
 organizations as (
@@ -89,25 +91,28 @@ final as (
         c.vehicle_was,
         c.pre_existing_damage,
 
-        -- Current status from tbl_claimstatus (the official status ID)
+        -- Official status from tbl_claimstatus
         cs.claim_status_name                        as official_status,
         cs.status_color,
 
-        -- Current status from status log (last free-text status entry)
+        -- Fault determination
+        cf.claim_fault_name,
+
+        -- Last logged status from status log
         ls.current_status_name                      as last_logged_status,
         ls.last_status_change_at,
         ls.total_status_changes,
 
-        -- Last activity from audit trail
-        la.last_activity_at,
-        la.total_activities,
+        -- Last activity = last status log entry
+        ls.last_status_change_at                    as last_activity_at,
+        ls.total_status_changes                     as total_activities,
 
         -- Calculated metrics
-        date_diff(
-            current_date(),
-            c.claim_date,
-            day
-        )                                           as days_since_opened,
+        case
+            when c.claim_date >= '2020-01-01'
+            then date_diff(current_date(), c.claim_date, day)
+            else null
+        end                                         as days_since_opened,
 
         date_diff(
             current_date(),
@@ -117,7 +122,7 @@ final as (
 
         date_diff(
             current_date(),
-            date(la.last_activity_at),
+            date(ls.last_status_change_at),
             day
         )                                           as days_since_last_activity,
 
@@ -137,11 +142,12 @@ final as (
     left join latest_status ls
         on cast(c.claim_id as string) = ls.claim_id
 
-    left join last_activity la
-        on c.claim_id = la.claim_id
-
     left join organizations o
         on c.organization_id = o.organization_id
+
+    left join claim_faults cf
+        on c.claim_fault_id = cf.claim_fault_id
+        and c.organization_id = cf.organization_id
 )
 
 select * from final

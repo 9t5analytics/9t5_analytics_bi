@@ -13,7 +13,9 @@ renamed as (
         entity_label,
         changes,
         cast(customer_id as int64)              as customer_id,
-        safe.timestamp_seconds(created_at)      as created_at
+        safe.timestamp_seconds(
+        cast(created_at / 1000000000 as int64)
+        )                                       as created_at,
 
     from source
 )

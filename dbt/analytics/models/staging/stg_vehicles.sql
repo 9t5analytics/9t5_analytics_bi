@@ -13,7 +13,7 @@ renamed as (
         year                                   as vehicle_year,
         bodyType                               as body_type_id,
         color                                  as vehicle_color,
-        state                                  as territory,
+        upper(state)                           as territory,
         vin,
         cast(isDelete as bool)                 as is_deleted,
         safe.timestamp_seconds(created_at)     as created_at,

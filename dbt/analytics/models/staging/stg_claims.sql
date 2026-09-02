@@ -32,7 +32,7 @@ renamed as (
         cast(updated_by as int64)                   as updated_by
 
     from source
-    where isDelete = 0
+    where claim_date >= '2020-01-01'
 )
 
 select * from renamed

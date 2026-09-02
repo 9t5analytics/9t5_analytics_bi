@@ -9,7 +9,9 @@ renamed as (
         status                                      as status_name,
         description                                 as status_note,
         cast(created_by as int64)                   as created_by,
-        safe.timestamp_seconds(created_at)          as created_at,
+        safe.timestamp_seconds(
+            cast(created_at / 1000000000 as int64)
+            )                                       as created_at,
         cast(isDelete as bool)                      as is_deleted
 
     from source

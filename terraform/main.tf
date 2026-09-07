@@ -226,4 +226,81 @@ resource "google_compute_instance" "superset" {
     email  = google_service_account.pipeline_sa.email
     scopes = ["cloud-platform"]
   }
+
+}
+
+# ── Cloud Run Job (Backup) ──────────────────────────────────────────
+resource "google_cloud_run_v2_job" "backup" {
+  name     = "database-backup"
+  location = var.region
+
+  template {
+    template {
+      service_account = google_service_account.pipeline_sa.email
+
+      containers {
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/analytics-pipeline/backup:latest"
+
+        env {
+          name  = "GCP_PROJECT_ID"
+          value = var.project_id
+        }
+        env {
+          name  = "GCS_BUCKET_NAME"
+          value = var.gcs_bucket_name
+        }
+        env {
+          name  = "MYSQL_HOST"
+          value = var.mysql_host
+        }
+        env {
+          name  = "MYSQL_PORT"
+          value = var.mysql_port
+        }
+        env {
+          name  = "MYSQL_DATABASE"
+          value = var.mysql_database
+        }
+        env {
+          name  = "MYSQL_USER"
+          value = var.mysql_user
+        }
+        env {
+          name = "MYSQL_PASSWORD"
+          value_source {
+            secret_key_ref {
+              secret  = "mysql-password"
+              version = "latest"
+            }
+          }
+        }
+
+        resources {
+          limits = {
+            cpu    = "1"
+            memory = "512Mi"
+          }
+        }
+      }
+
+      timeout = "3600s"
+    }
+  }
+}
+
+# ── Cloud Scheduler (Backup) ────────────────────────────────────────
+resource "google_cloud_scheduler_job" "backup_trigger" {
+  name      = "database-backup-daily"
+  region    = var.region
+  schedule  = "0 3 * * *"
+  time_zone = "UTC"
+
+  http_target {
+    http_method = "POST"
+    uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/database-backup:run"
+
+    oauth_token {
+      service_account_email = google_service_account.pipeline_sa.email
+    }
+  }
 }

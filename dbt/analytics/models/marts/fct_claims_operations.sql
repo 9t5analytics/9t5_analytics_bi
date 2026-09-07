@@ -38,11 +38,19 @@ claim_faults as (
     from {{ ref('stg_claimfault') }}
 ),
 
-latest_status as (
+organizations as (
+    select
+        organization_id,
+        organization_name
+    from {{ ref('stg_organizations') }}
+),
+
+-- Latest status log entry per claim (for last activity date)
+latest_activity as (
     select
         claim_id,
-        status_name                                 as current_status_name,
-        created_at                                  as last_status_change_at,
+        status_name                                 as last_activity_status,
+        created_at                                  as last_activity_at,
         total_changes                               as total_status_changes
     from (
         select
@@ -59,11 +67,43 @@ latest_status as (
     where rn = 1
 ),
 
-organizations as (
+-- When the current status first started (for days stuck calculation)
+current_status_start as (
     select
-        organization_id,
-        organization_name
-    from {{ ref('stg_organizations') }}
+        sl.claim_id,
+        sl.current_status_name,
+        min(log.created_at)                         as status_started_at
+    from (
+        -- Get current status per claim
+        select
+            claim_id,
+            status_name                             as current_status_name
+        from (
+            select
+                claim_id,
+                status_name,
+                row_number() over (
+                    partition by claim_id
+                    order by created_at desc
+                )                                   as rn
+            from {{ ref('stg_claim_status_log') }}
+        )
+        where rn = 1
+    ) sl
+    inner join {{ ref('stg_claim_status_log') }} log
+        on sl.claim_id = log.claim_id
+        and sl.current_status_name = log.status_name
+    group by sl.claim_id, sl.current_status_name
+),
+
+-- Date when DOCUMENT SENT TO LAWER/INSURANCE was first logged per claim
+document_sent as (
+    select
+        claim_id,
+        min(created_at)                             as document_sent_date
+    from {{ ref('stg_claim_status_log') }}
+    where status_name = 'DOCUMENT SENT TO LAWER/INSURANCE'
+    group by claim_id
 ),
 
 final as (
@@ -91,40 +131,58 @@ final as (
         c.vehicle_was,
         c.pre_existing_damage,
 
-        -- Official status from tbl_claimstatus
-        cs.claim_status_name                        as official_status,
+        -- Primary status dimension (Active / Closed)
+        case
+            when cs.claim_status_name = 'CLOSED' then 'Closed'
+            else 'Active'
+        end                                         as primary_status,
+
+        -- Sub status (operational detail)
+        cs.claim_status_name                        as sub_status,
         cs.status_color,
 
         -- Fault determination
         cf.claim_fault_name,
 
         -- Last logged status from status log
-        ls.current_status_name                      as last_logged_status,
-        ls.last_status_change_at,
-        ls.total_status_changes,
+        la.last_activity_status                     as last_logged_status,
+        la.last_activity_at,
+        la.total_status_changes,
 
-        -- Last activity = last status log entry
-        ls.last_status_change_at                    as last_activity_at,
-        ls.total_status_changes                     as total_activities,
+        -- Current status started
+        css.status_started_at,
 
-        -- Calculated metrics
+        -- Aging Calculations
+
+        -- 1. Days since last activity (last ANY entry in status log)
+        date_diff(
+            current_date(),
+            date(la.last_activity_at),
+            day
+        )                                           as days_since_last_activity,
+
+        -- 2. Days stuck in current status (since current status first started)
+        date_diff(
+            current_date(),
+            date(css.status_started_at),
+            day
+        )                                           as days_stuck_in_status,
+
+        -- 3. Days since opened
         case
             when c.claim_date >= '2020-01-01'
             then date_diff(current_date(), c.claim_date, day)
             else null
         end                                         as days_since_opened,
 
-        date_diff(
-            current_date(),
-            date(ls.last_status_change_at),
-            day
-        )                                           as days_in_current_status,
-
-        date_diff(
-            current_date(),
-            date(ls.last_status_change_at),
-            day
-        )                                           as days_since_last_activity,
+        -- 4. Days since document sent to lawyer
+        coalesce(
+            cast(
+                date_diff(current_date(), date(ds.document_sent_date), day)
+                as string
+            ),
+            'Not Sent to Lawyer'
+        )                                           as days_since_document_sent_to_lawyer,
 
         -- Timestamps
         c.created_at,
@@ -139,15 +197,21 @@ final as (
         on c.claim_status_id = cs.claim_status_id
         and c.organization_id = cs.organization_id
 
-    left join latest_status ls
-        on cast(c.claim_id as string) = ls.claim_id
+    left join claim_faults cf
+        on c.claim_fault_id = cf.claim_fault_id
+        and c.organization_id = cf.organization_id
 
     left join organizations o
         on c.organization_id = o.organization_id
 
-    left join claim_faults cf
-        on c.claim_fault_id = cf.claim_fault_id
-        and c.organization_id = cf.organization_id
+    left join latest_activity la
+        on cast(c.claim_id as string) = la.claim_id
+
+    left join current_status_start css
+        on cast(c.claim_id as string) = css.claim_id
+
+    left join document_sent ds
+        on cast(c.claim_id as string) = ds.claim_id
 )
 
 select * from final

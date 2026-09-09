@@ -1,0 +1,11 @@
+analytics:
+  outputs:
+    prod:
+      type: bigquery
+      method: oauth
+      project: analytics-9t5-prod
+      dataset: analytics
+      location: europe-west1
+      threads: 4
+      timeout_seconds: 300
+  target: prod

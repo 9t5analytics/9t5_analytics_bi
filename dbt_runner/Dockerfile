@@ -10,4 +10,4 @@ COPY dbt_runner/profiles.yml ./profiles.yml
 ENV PYTHONUNBUFFERED=1
 ENV DBT_PROFILES_DIR=/app
 
-CMD ["dbt", "run", "--select", "marts", "--project-dir", "/app/analytics", "--profile", "analytics"]
+CMD ["dbt", "run", "--select", "marts", "--project-dir", "/app/analytics", "--profile", "analytics"]# dbt runner CI test

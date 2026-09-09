@@ -39,7 +39,6 @@ FULL_REFRESH_TABLES = [
     "tbl_policystatus",
     "tbl_policy",
     "tbl_valuationtype",
-    "tbl_settlement",
     "tbl_claim_tasks",
     "tbl_membership_package",
     "tbl_vehicle_transfer",

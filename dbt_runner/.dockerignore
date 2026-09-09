@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+dbt/analytics/target/
+dbt/analytics/dbt_packages/
+dbt/analytics/logs/

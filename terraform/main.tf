@@ -145,7 +145,7 @@ resource "google_cloud_run_v2_job" "pipeline" {
 resource "google_cloud_scheduler_job" "pipeline_trigger" {
   name      = "analytics-pipeline-daily"
   region    = var.region
-  schedule  = "0 2 * * *"
+  schedule  = "0 14 * * *"
   time_zone = "UTC"
 
   http_target {
@@ -292,12 +292,54 @@ resource "google_cloud_run_v2_job" "backup" {
 resource "google_cloud_scheduler_job" "backup_trigger" {
   name      = "database-backup-daily"
   region    = var.region
-  schedule  = "0 3 * * *"
+  schedule  = "0 15 * * *"
   time_zone = "UTC"
 
   http_target {
     http_method = "POST"
     uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/database-backup:run"
+
+    oauth_token {
+      service_account_email = google_service_account.pipeline_sa.email
+    }
+  }
+}
+
+# ── Cloud Run Job (dbt Runner) ──────────────────────────────────────
+resource "google_cloud_run_v2_job" "dbt_runner" {
+  name     = "dbt-runner"
+  location = var.region
+
+  template {
+    template {
+      service_account = google_service_account.pipeline_sa.email
+
+      containers {
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/analytics-pipeline/dbt-runner:latest"
+
+        resources {
+          limits = {
+            cpu    = "1"
+            memory = "512Mi"
+          }
+        }
+      }
+
+      timeout = "1800s"
+    }
+  }
+}
+
+# ── Cloud Scheduler (dbt Runner) ────────────────────────────────────
+resource "google_cloud_scheduler_job" "dbt_trigger" {
+  name      = "dbt-runner-daily"
+  region    = var.region
+  schedule  = "30 14 * * *"
+  time_zone = "UTC"
+
+  http_target {
+    http_method = "POST"
+    uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/dbt-runner:run"
 
     oauth_token {
       service_account_email = google_service_account.pipeline_sa.email

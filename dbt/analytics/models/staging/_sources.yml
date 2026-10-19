@@ -1,7 +1,7 @@
 version: 2
 
 sources:
-  - name: raw
+  - name: analytics
     database: analytics-9t5-prod
     schema: analytics
     description: "Raw tables loaded by the ingestion pipeline from Railway MySQL"
@@ -97,20 +97,69 @@ sources:
       - name: tbl_activity_log
         description: "Staff activity log"
 
-      - name: tbl_settlement
-        description: "The table for Aaccounts Receivable and Accounts Payable"
-
       - name: tbl_audit_trail
         description: "Comprehensive audit log recording every change to every entity"
 
-# Settlement module — added October 2026
-      - name: tbl_feetype
-      - name: tbl_lawyer
-      - name: tbl_liabilitystatus
-      - name: tbl_note
+      - name: tbl_membership_package
+        description: "Membership package types"
+
+      - name: tbl_notification_reads
+        description: "Notification read receipts"
+
+      - name: tbl_notifications
+        description: "Notifications sent to users"
+
+      - name: tbl_vehicle_transfer
+        description: "Vehicle transfer records"
+
+      - name: tbl_customer_documents
+        description: "Documents uploaded by customers"
+
+      - name: tbl_customer_notes
+        description: "Notes added to customers"
+
+      - name: tbl_claim_tasks
+        description: "Tasks associated with claims"
+
+      - name: tbl_payment_links
+        description: "Payment links generated for customers"
+
+      - name: tbl_refunds
+        description: "Refund records"
+
+      - name: tbl_stripe_customers
+        description: "Stripe customer records"
+
+      - name: tbl_staff_permissions
+        description: "Staff permission assignments"
+
+      # Settlement module — added October 2026
       - name: tbl_settlement
-      - name: tbl_settlement_cost
-      - name: tbl_settlement_excess_installment
-      - name: tbl_settlement_offer
+        description: "Settlement records per claim"
+
       - name: tbl_settlement_party
+        description: "Parties involved in each settlement"
+
+      - name: tbl_settlement_offer
+        description: "Offers made to each settlement party"
+
+      - name: tbl_settlement_cost
+        description: "Cost line items per settlement party"
+
+      - name: tbl_settlement_excess_installment
+        description: "Excess payment installment schedule"
+
       - name: tbl_settlementstatus
+        description: "Lookup - settlement status types"
+
+      - name: tbl_liabilitystatus
+        description: "Lookup - liability status types"
+
+      - name: tbl_lawyer
+        description: "Lawyers associated with settlements"
+
+      - name: tbl_feetype
+        description: "Lookup - fee type categories"
+
+      - name: tbl_note
+        description: "Notes attached to claims and customers"

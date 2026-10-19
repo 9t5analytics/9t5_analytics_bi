@@ -45,6 +45,18 @@ FULL_REFRESH_TABLES = [
     "tbl_customer_documents",
     "tbl_customer_notes",
     "tbl_notification_reads",
+    "tbl_email_template",
+    "tbl_feetype",
+    "tbl_lawyer",
+    "tbl_liabilitystatus",
+    "tbl_note",
+    "tbl_org_document_content",
+    "tbl_settlement",
+    "tbl_settlement_cost",
+    "tbl_settlement_excess_installment",
+    "tbl_settlement_offer",
+    "tbl_settlement_party",
+    "tbl_settlementstatus",
 ]
 
 # Tables that use incremental loading based on created_at

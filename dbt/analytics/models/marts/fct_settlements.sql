@@ -114,15 +114,15 @@ final as (
         lo.highest_offer_amount,
 
         -- Aging
-        date_diff(current_date(), date(s.created_at), day) as days_since_settlement_opened,
+        date_diff(current_date(), date(safe.timestamp_seconds(cast(s.created_at / 1000000000 as int64))), day) as days_since_settlement_opened,
         case
             when s.is_finalized then 'Finalised'
             else 'Open'
         end                                     as settlement_stage,
 
         -- Timestamps
-        s.created_at                            as settlement_created_at,
-        s.updated_at                            as settlement_updated_at
+        safe.timestamp_seconds(cast(s.created_at / 1000000000 as int64)) as settlement_created_at,
+        safe.timestamp_seconds(cast(s.updated_at / 1000000000 as int64)) as settlement_updated_at
 
     from parties p
 

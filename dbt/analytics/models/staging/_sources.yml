@@ -102,3 +102,15 @@ sources:
 
       - name: tbl_audit_trail
         description: "Comprehensive audit log recording every change to every entity"
+
+# Settlement module — added October 2026
+      - name: tbl_feetype
+      - name: tbl_lawyer
+      - name: tbl_liabilitystatus
+      - name: tbl_note
+      - name: tbl_settlement
+      - name: tbl_settlement_cost
+      - name: tbl_settlement_excess_installment
+      - name: tbl_settlement_offer
+      - name: tbl_settlement_party
+      - name: tbl_settlementstatus

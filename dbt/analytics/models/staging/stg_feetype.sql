@@ -1,7 +1,7 @@
 with source as (
-    select * from {{ source('analytics', 'tbl_feetype') }}
+    select * from {{ source('raw', 'tbl_feetype') }}
 ),
-
+ 
 renamed as (
     select
         id          as fee_type_id,
@@ -12,5 +12,5 @@ renamed as (
     from source
     where isDelete = 0
 )
-
+ 
 select * from renamed

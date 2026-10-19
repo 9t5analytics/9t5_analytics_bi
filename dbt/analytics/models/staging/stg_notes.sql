@@ -1,6 +1,5 @@
-
 with source as (
-    select * from {{ source('analytics', 'tbl_note') }}
+    select * from {{ source('raw', 'tbl_note') }}
 ),
  
 renamed as (

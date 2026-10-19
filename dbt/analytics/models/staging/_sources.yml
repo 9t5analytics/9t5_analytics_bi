@@ -1,7 +1,7 @@
 version: 2
 
 sources:
-  - name: analytics
+  - name: raw
     database: analytics-9t5-prod
     schema: analytics
     description: "Raw tables loaded by the ingestion pipeline from Railway MySQL"
